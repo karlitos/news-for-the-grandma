@@ -1,0 +1,361 @@
+<!doctype html>
+
+<html lang="cs">
+
+<head>
+    <meta charset="utf-8">
+
+    <title>Denní zpravodajství</title>
+    <meta name="description" content="Czech dialy new from Novinky.cz">
+    <meta name="author" content="Karel Macha">
+
+    <!-- <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        ul {
+            padding-right: 40px;
+        }
+
+        li {
+            list-style: none;
+            height: 113px;
+            padding: 10px;
+        }
+
+        h1 {
+            padding-left: 40px;
+        }
+
+        h3 {
+            display: inline;
+            margin-left: 10px;
+        }
+
+        img.list-image {
+            float: left;
+            margin-right: 10px;
+        }
+
+        div.summary {
+            margin-top: 10px;
+        }
+
+        h2 + img {
+            margin-bottom: 20px;
+        }
+
+        div.go-back-btn {
+            font-size: 25px;
+            background-color: orangered;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        div.loading-overlay {
+            height: 100%;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #777777b7;
+            text-align: center;
+            line-height: 70vh;
+            font-size: 100px;
+            color: whitesmoke;
+            text-shadow: 2px 2px grey;
+        }
+
+        div.loading-spinner {
+            position: absolute;
+            bottom: 20%;
+            left: calc( 50% - 60px);
+            border: 16px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 16px solid blue;
+            border-bottom: 16px solid blue;
+            width: 120px;
+            height: 120px;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+        }
+
+        .marked {
+            font-weight: bold;
+            color: darkred;
+        }
+
+        .perex {
+            font-weight: bold;
+        }
+
+        p > a, blockquote > a, em > a, span > a {
+            pointer-events: none;
+            cursor: default;
+            text-decoration: none;
+            color: black;
+        }
+
+        blockquote > p {
+            font-style: italic
+        }
+
+
+        @-webkit-keyframes spin {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <script>
+        // Some global vars
+        var corsProxyUrl = "https://cors-anywhere.herokuapp.com/";
+        var parser = new DOMParser();
+        var date = new Date();
+        // var novinkyUrl = "https://www.novinky.cz/archiv?id=966&date=" + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+        var novinkyUrl = "https://m.novinky.cz/articles?sId=966"; // &date=" + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear();
+
+        // Create the basic page-structure
+        var listContainer = document.createElement("div");
+        document.body.appendChild(listContainer);
+
+        var articleContainer = document.createElement("div");
+        articleContainer.style.display = "none ";
+        articleContainer.style.paddingLeft = "40px";
+        document.body.appendChild(articleContainer);
+
+         var loadingOverlay = document.createElement("div")
+        loadingOverlay.style.display = "block ";
+        loadingOverlay.innerText = "Načítají se data";
+        loadingOverlay.className = "loading-overlay";
+
+        var loadingSpinner = document.createElement("div");
+        loadingSpinner.className = "loading-spinner";
+        loadingOverlay.appendChild(loadingSpinner);
+        document.body.appendChild(loadingOverlay);
+
+        window.mobileAndTabletcheck = function () {
+            var check = false;
+            (function (a) { if (/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4))) check = true; })(navigator.userAgent || navigator.vendor || window.opera);
+            return check;
+        };
+
+        // Hanlder for the click-event on the Go-back button in the article view
+        function goBackBtnClick() {
+            listContainer.style.display = "block ";
+            articleContainer.style.display = "none ";
+            // Clear the article container content
+            while (articleContainer.firstChild) {
+                articleContainer.removeChild(articleContainer.firstChild);
+            }
+        }
+
+        // Handler for the XHTTP request loading the article data
+        function parseArticleData() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var goBackBtn = document.createElement("div");
+                    goBackBtn.className = "go-back-btn";
+                    goBackBtn.innerText = "⇦ Návrat na přehled všech zpráv";
+                    goBackBtn.setAttribute("href",  "javascript:void(0)");
+                    goBackBtn.onclick = goBackBtnClick;
+                    articleContainer.appendChild(goBackBtn);
+                    // Parse the article
+                    doc = parser.parseFromString(this.responseText, "text/html");
+
+                    // Add header box                   
+                    // header = doc.getElementById("articleHeaderBig");
+                    header = doc.querySelector("h2.artCaption");
+                    if (header) {
+                        articleContainer.appendChild(header);
+                    }
+                    // Add galler image
+                    img = doc.querySelector("div.perexBlock > div.image > img");
+                    if (img) {
+                        img.src = img.src.replace("file://","https://m.novinky.cz");
+                        articleContainer.appendChild(img);
+                    }
+                    // Add preface
+                    preface = doc.querySelector("div.perexBlock > div.topMargin");
+                    if (preface) {
+                        articleContainer.appendChild(preface);
+                    }
+                    // Add article Body
+                    articleBody = doc.querySelector("div.articleText");
+                    if (articleBody) {
+                        articleBody = articleBody.children;
+                        for (var j = 0; j < articleBody.length; j++) {
+                            if (articleBody[j].tagName === "P" && articleBody[j].className === "") {
+                                articleContainer.appendChild(articleBody[j].cloneNode(true));
+                            } else if (articleBody[j].className === "articlePhotos") {
+                                articleContainer.appendChild(articleBody[j].querySelector("img"));
+                            } else if (articleBody[j].tagName === "IMG") {
+                                articleContainer.appendChild(articleBody[j].cloneNode(true));
+                            } else if (articleBody[j].tagName === "BLOCKQUOTE") {
+                                articleContainer.appendChild(articleBody[j].cloneNode(true));
+                            } else if (articleBody[j].tagName === "H4") {
+                                articleContainer.appendChild(articleBody[j].cloneNode(true));
+                            }
+                        }
+                    }
+                    listContainer.style.display = "none ";
+                    articleContainer.style.display = "block ";
+                    loadingOverlay.style.display = "none ";
+                }
+            };
+
+        // Handler for the click-event on an article in the main article-list overview
+        function onListItemClick(url) {
+            var xhttp = new XMLHttpRequest();
+            var doc;
+            var header;
+            var img;
+            var preface;
+            var articleBody;
+
+            xhttp.onreadystatechange = parseArticleData;
+
+            loadingOverlay.style.display = "block ";
+            xhttp.open("GET", corsProxyUrl + url, true);
+            xhttp.send();
+        }
+
+        function parseMainNewsPage() {
+            if (this.readyState == 4 && this.status == 200) {
+                // Add some heading to the listContainer
+                var newElement = document.createElement("h1");
+                newElement.innerHTML = "Přehled zpráv ze dne " + date.getDate() + "." + (date.getMonth() + 1) + "." + date.getFullYear() + " pro milovanou babičku";
+                listContainer.appendChild(newElement);
+                // We add a new list to the listContainer
+                var list = listContainer.appendChild(document.createElement("ul"));
+                var doc = parser.parseFromString(this.responseText, "text/html");
+                var articles = doc.getElementsByClassName("firstArticle")[0];
+                if (articles) {
+                    articles = articles.parentNode.childNodes;
+                } else {
+                    articles = [];
+                    listContainer.appendChild(document.createTextNode("Bohužel tu nejsou zatím žádné zprávy které by bylo možné zobrazit"));
+                }
+                /*
+                if (mobileAndTabletcheck()) {
+                    // articles = doc.getElementsByClassName('centerBan')[0].nextSibling.childNodes;
+                    articles = doc.getElementsByClassName("afs");
+                } else {
+                    articles = doc.getElementsByClassName("item");
+                }
+                */
+                var listElement;
+                var img;
+                var timestamp;
+                var article;
+                var heading;
+                var content;
+                for (var i = 0; i < articles.length; i++) {
+                    (function (ii) {
+                        // Try to parse the article and find heading first
+                        article = parser.parseFromString(articles[ii].responseText, "text/html");
+                        // console.log(articles[ii]);
+                        heading = articles[ii].querySelector("h2");
+                        // Only continue, if heading and url found
+                        if (heading && heading.querySelector("a")) {
+
+                            listElement = list.appendChild(document.createElement("li"));
+                            if (i % 2 === 0) {
+                                listElement.style.backgroundColor = "#f3f2f2";
+                            }
+
+                            // Add onclick/ontouch handler with current url as argument
+                            var url = heading.querySelector("a").href.replace("file://","https://m.novinky.cz");
+
+                            listElement.onclick = function () {
+                                onListItemClick(url)
+                            };
+                            listElement.ontouchstart = function () {
+                                onListItemClick(url)
+                            };
+                            // ###
+                            // img = articles[ii].querySelector("a > img");
+                            img = articles[ii].querySelector("img");
+                            if (img) {
+                                img.className = "list-image";
+                                img.src = img.src.replace("file://","https://m.novinky.cz");
+                                listElement.appendChild(img)
+                                img = null;
+                            }
+                            // ###
+                            // Extract the timestamp
+                            /*
+                            timestamp = articles[ii].querySelector("p.noClear > span.marked");
+                            if (timestamp) {
+                                listElement.appendChild(document.createTextNode(timestamp.innerText));
+                                timestamp = null;
+                            }
+                            */
+                            // ###
+                            /*
+                            heading = articles[ii].querySelector("h3.likeInInfo > a");
+                            if (heading) {
+                                // console.log(heading.innerHTML);
+                                newElement = document.createElement("h3");
+                                newElement.innerHTML = heading.innerHTML;
+                                listElement.appendChild(newElement);
+                                heading = null;
+                            } else {
+                                heading = articles[ii].querySelector("div.info > h3");
+                            }
+                            if (heading) {
+                                newElement = document.createElement("h3");
+                                newElement.innerHTML = heading.innerHTML;
+                                listElement.appendChild(newElement);
+                                heading = null;
+                            }
+                            */
+                            newElement = document.createElement("h3");
+                            // We can do this safely - checked heading already before
+                            newElement.innerHTML = heading.innerText;
+                            listElement.appendChild(newElement);
+                            heading = null;
+                            // ######
+                            // content = articles[ii].querySelector("div.info > p");
+                            content = articles[ii].querySelector("p.noClear");
+                            if (content) {
+                                newElement = document.createElement("div");
+                                newElement.className = "summary";
+                                newElement.innerHTML = content.innerText;
+                                listElement.appendChild(newElement);
+                                content = null;
+                            }
+                        }
+                    })(i);
+                }
+                loadingOverlay.style.display = "none";
+            }
+        }
+
+        // Open the man news page and parse the article list
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = parseMainNewsPage;
+        xhttp.open("GET", corsProxyUrl + novinkyUrl, true);
+        xhttp.send();
+    </script>
+</body>
+
+</html>
